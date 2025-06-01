@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<!-- saved from url=(0057)file:///C:/Users/SAGNIK/OneDrive/Desktop/ElvenGambit.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Elven Gambit</title>
+    <script src="./ElvenGambit_files/saved_resource"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Black background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1a1a1a; /* Darker black for container */
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); /* Gold glow */
+            max-width: 95vw; /* Responsive width */
+            max-height: 95vh; /* Responsive height */
+            box-sizing: border-box;
+        }
+        canvas {
+            border: 2px solid #FFD700; /* Gold border */
+            background-color: #333333; /* Dark grey for playable area */
+            border-radius: 0.5rem;
+            touch-action: manipulation; /* Prevent double-tap zoom */
+            display: block; /* Remove extra space below canvas */
+        }
+        .game-controls {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .game-button {
+            background-color: #FFD700; /* Gold */
+            color: #000000; /* Black text */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            border: none;
+            outline: none;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+        .game-button:hover {
+            background-color: #E6C200; /* Darker gold */
+            transform: translateY(-2px);
+        }
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+        }
+        .game-button:disabled {
+            background-color: #555555;
+            color: #AAAAAA;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .message-box {
+            background-color: #222222;
+            color: #FFD700;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            text-align: center;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            width: 90%;
+            max-width: 400px;
+            word-wrap: break-word;
+        }
+        .dice-display {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .die-image {
+            background-color: #FFD700;
+            width: 50px;
+            height: 50px;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .die-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: none;
+        }
+        .die-image.rolling img {
+            animation: roll 1s infinite linear;
+        }
+
+        @keyframes roll {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        /* Title Screen Specific Styles */
+        .title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            color: #FFD700;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+        .title-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .title-screen h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+        }
+        .title-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .title-screen p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #CCCCCC;
+        }
+        .title-screen .designer {
+            font-size: 1.2rem;
+            margin-top: 3rem;
+            color: #AAAAAA;
+        }
+
+        /* Game Over / Win Screen Specific Styles */
+        .game-end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #FFD700;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 101;
+            transition: opacity 0.5s ease;
+        }
+        .game-end-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .game-end-screen h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            color: #FFD700; /* Gold for win, Red for lose */
+        }
+        .game-end-screen.game-over h1 {
+            color: #FF0000; /* Red for game over */
+        }
+        .game-end-screen p {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: #CCCCCC;
+        }
+        .game-end-screen button {
+            margin: 0.5rem;
+        }
+
+        /* Portal Selection Modal */
+        .portal-selection-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 102;
+        }
+        .portal-selection-modal-content {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            text-align: center;
+            color: #FFD700;
+            max-width: 90%;
+        }
+        .portal-selection-modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .portal-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .portal-select-button {
+            min-width: 120px;
+        }
+        .game-action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Rules Screen Modal */
+        .rules-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 103;
+            color: #FFD700;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow-y: auto; /* Enable scrolling for rules */
+        }
+        .rules-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .rules-screen h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+        .rules-content {
+            background-color: #222222;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 800px;
+            width: 90%;
+            text-align: left;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            color: #CCCCCC;
+            margin-bottom: 1.5rem;
+        }
+        .rules-content h3 {
+            font-size: 1.5rem;
+            color: #FFD700;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .rules-content ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .rules-content p {
+            margin-bottom: 1rem;
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 1rem;
+            }
+            canvas {
+                width: 100%; /* Make canvas fill container */
+                height: auto; /* Maintain aspect ratio */
+            }
+            .game-button {
+                padding: 0.6rem 1.2rem;
+                font-size: 1rem;
+            }
+            .message-box {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+            .title-screen h1 {
+                font-size: 2.5rem;
+            }
+            .title-screen h2 {
+                font-size: 1.8rem;
+            }
+            .title-screen p {
+                font-size: 1.2rem;
+            }
+            .title-screen .designer {
+                font-size: 1rem;
+            }
+            .game-end-screen h1 {
+                font-size: 2.5rem;
+            }
+            .game-end-screen p {
+                font-size: 1.4rem;
+            }
+            .portal-selection-modal-content h2 {
+                font-size: 1.5rem;
+            }
+            .portal-select-button {
+                min-width: unset;
+                width: 100%;
+            }
+            .game-action-buttons {
+                flex-direction: column;
+            }
+            .rules-screen h1 {
+                font-size: 2rem;
+            }
+            .rules-content {
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
+            .rules-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.16 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.hidden{display:none}</style></head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div class="game-controls">
+            <div class="dice-display" id="diceDisplay">
+                <div class="die-image" id="die1Container"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ3aGl0ZSIgcng9IjEwIiByeT0iMTAiLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgPC9zdmc+" alt="Die 1"></div>
+                <div class="die-image" id="die2Container"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ3aGl0ZSIgcng9IjEwIiByeT0iMTAiLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgPC9zdmc+" alt="Die 2"></div>
+            </div>
+            <button id="rollDiceBtn" class="game-button">Roll Dice (Elf's Turn)</button>
+            <div id="messageBox" class="message-box">Let the hunt begin!</div>
+            <div class="game-action-buttons">
+                <button id="restartGameBtn" class="game-button">Restart Game</button>
+                <button id="endGameBtn" class="game-button">End Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="titleScreen" class="title-screen">
+        <h1>The Elven Gambit</h1>
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;"></h2>
+        <p>Retrieve the gold and escape the Orc!</p>
+        <button id="startBtn" class="game-button">Start Game</button>
+        <button id="rulesBtn" class="game-button">Rules</button>
+        <p class="designer">Designed By Sagnik Sen Roy</p>
+    </div>
+
+    <div id="gameEndScreen" class="game-end-screen hidden">
+        <h1 id="gameEndTitle"></h1>
+        <p id="gameEndMessage"></p>
+        <button id="restartBtn" class="game-button">Restart Game</button>
+        <button id="quitBtn" class="game-button">Quit</button>
+    </div>
+
+    <div id="portalSelectionModal" class="portal-selection-modal hidden">
+        <div class="portal-selection-modal-content">
+            <h2>Choose a Portal Destination</h2>
+            <div id="portalButtons" class="portal-buttons-container">
+                </div>
+        </div>
+    </div>
+
+    <div id="rulesScreen" class="rules-screen hidden">
+        <h1>Game Rules</h1>
+        <div class="rules-content">
+            <h3>Concept:</h3>
+            <p>The Orcs of Metriazol have taken the last of the gold of the poor village of Samarakh, you have to retrieve the gold and return safely without getting caught by the patrolling Orc.</p>
+            <p>This is a two-player game. One player controls the Elf thief, and the other controls the Orc.</p>
+            <h3>Game End:</h3>
+            <ul>
+                <li>The game ends when the Elf is caught by the Orc.</li>
+                <li>The game also ends when the Elf successfully retrieves the gold and returns to the starting point.</li>
+            </ul>
+            <h3>Movement:</h3>
+            <ul>
+                <li>Both players roll two dice each turn.</li>
+                <li><strong>Orc Movement:</strong> The Orc moves in any **diagonal direction**. The number of paces is determined by the **difference of the two dice outcomes** (if the difference is zero, the Orc stays still and the turn passes to the Elf). The Orc **cannot land on the gold tile**.</li>
+                <li><strong>Elf Movement:</strong> The Elf moves in **any direction** (horizontal, vertical). The number of paces is determined by the **lowest outcome** amongst the two die rolls. Elf cannot move diagonally.</li>
+            </ul>
+            <h3>Special Tiles:</h3>
+            <ul>
+                <li><strong>Bush Tiles (🌳):</strong> If the Elf is on a bush tile, she is hidden and safe from the Orc. The Orc cannot catch the Elf on a bush tile.</li>
+                <li><strong>Orange Portal Tiles (🌀):</strong> These tiles can be used by both players. If a player lands on a portal tile, they can choose to teleport to any other available portal tile on the board.</li>
+                <li><strong>Start/End Tile (Gold):</strong> This is where the Elf starts and where she must return with the gold to win the game.</li>
+                <li><strong>Gold Tile (💰):</strong> This is the objective for the Elf.</li>
+            </ul>
+            <p><strong>LET THE HUNT BEGIN!!</strong></p>
+        </div>
+        <button id="backToTitleBtn" class="game-button">Back to Title</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const rollDiceBtn = document.getElementById('rollDiceBtn');
+        const messageBox = document.getElementById('messageBox');
+        const die1Container = document.getElementById('die1Container');
+        const die2Container = document.getElementById('die2Container');
+        const die1Image = die1Container.querySelector('img');
+        const die2Image = die2Container.querySelector('img');
+        const titleScreen = document.getElementById('titleScreen');
+        const startBtn = document.getElementById('startBtn');
+        const rulesBtn = document.getElementById('rulesBtn');
+        const gameEndScreen = document.getElementById('gameEndScreen');
+        const gameEndTitle = document.getElementById('gameEndTitle');
+        const gameEndMessage = document.getElementById('gameEndMessage');
+        const restartBtn = document.getElementById('restartBtn');
+        const quitBtn = document.getElementById('quitBtn');
+        const portalSelectionModal = document.getElementById('portalSelectionModal');
+        const portalButtonsContainer = document.getElementById('portalButtons');
+        const restartGameBtn = document.getElementById('restartGameBtn');
+        const endGameBtn = document.getElementById('endGameBtn');
+        const rulesScreen = document.getElementById('rulesScreen');
+        const backToTitleBtn = document.getElementById('backToTitleBtn');
+
+        // Game Constants
+        const GRID_SIZE = 10;
+        const BASE_CELL_SIZE = 60;
+        let currentCellSize = BASE_CELL_SIZE;
+
+        const COLORS = {
+            BLACK: '#000000',
+            DARK_GREY_BOARD: '#333333',
+            GOLD: '#FFD700',
+            WHITE: '#FFFFFF',
+            GREEN_BUSH: '#008000',
+            ORANGE_PORTAL: '#FFA500',
+            RED_CAUGHT: '#FF0000',
+            HIGHLIGHT: 'rgba(255, 255, 0, 0.4)'
+        };
+
+        // Game elements positions (0-indexed)
+        const bushPositions = [[2, 1], [4, 2], [1, 3], [3, 4], [5, 5], [7, 6], [2, 7], [4, 8], [6, 9]];
+        const portalPositions = [
+            { pos: [3, 0], name: 'Portal 1' },
+            { pos: [0, 4], name: 'Portal 2' },
+            { pos: [9, 7], name: 'Portal 3' },
+            { pos: [5, 9], name: 'Portal 4' }
+        ];
+        const startEndPoint = [9, 0];
+        const goldPosition = [0, 9];
+
+        // Game state variables
+        let elfPos = [...startEndPoint];
+        let orcPos = [0, 0];
+        let elfHasGold = false;
+        let playerTurn = 'elf';
+        let gameActive = false;
+        let currentGameState = 'TITLE';
+        let validMoves = [];
+        let isMoving = false;
+        let animationStartTime = 0;
+        const animationDuration = 300;
+        let startAnimationPos = [];
+        let targetAnimationPos = [];
+
+        let awaitingPortalSelection = false;
+        let playerAwaitingPortal = null;
+
+        let bushAnimationOpacity = 0.7;
+        let bushAnimationDirection = 1;
+        let bushAnimationInterval;
+
+        // Player SVG Icons (inline data URLs)
+        const elfSVG = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="elfSkinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FFDAB9" />
+                        <stop offset="100%" stop-color="#F0C2A6" />
+                    </linearGradient>
+                    <linearGradient id="elfHairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#DAA520" />
+                        <stop offset="100%" stop-color="#B8860B" />
+                    </linearGradient>
+                    <linearGradient id="elfArmorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#A9A9A9" />
+                        <stop offset="100%" stop-color="#808080" />
+                    </linearGradient>
+                    <linearGradient id="elfClothGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#228B22" />
+                        <stop offset="100%" stop-color="#006400" />
+                    </linearGradient>
+                    <filter id="elfShadow">
+                        <feDropShadow dx="1" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
+                    </filter>
+                </defs>
+                <path d="M50 45 L30 85 H70 Z" fill="url(#elfClothGradient)" stroke="#000" stroke-width="1" filter="url(#elfShadow)"/>
+                <circle cx="50" cy="30" r="20" fill="url(#elfSkinGradient)" stroke="#000" stroke-width="1" filter="url(#elfShadow)"/>
+                <path d="M30 20 Q50 5, 70 20 Q75 40, 50 45 Q25 40, 30 20 Z" fill="url(#elfHairGradient)" stroke="#000" stroke-width="1"/>
+                <path d="M30 25 Q20 15, 15 30 Q25 35, 30 25 Z" fill="url(#elfSkinGradient)" stroke="#000" stroke-width="1"/>
+                <path d="M70 25 Q80 15, 85 30 Q75 35, 70 25 Z" fill="url(#elfSkinGradient)" stroke="#000" stroke-width="1"/>
+                <circle cx="42" cy="28" r="3" fill="black"/>
+                <circle cx="58" cy="28" r="3" fill="black"/>
+                <path d="M45 38 Q50 42, 55 38" stroke="black" stroke-width="1" fill="none"/>
+                <rect x="35" y="42" width="30" height="5" fill="#8B4513" stroke="#000" stroke-width="1"/>
+                <rect x="25" y="50" width="10" height="25" rx="5" ry="5" fill="url(#elfClothGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="65" y="50" width="10" height="25" rx="5" ry="5" fill="url(#elfClothGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="40" y="80" width="8" height="15" rx="3" ry="3" fill="url(#elfClothGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="52" y="80" width="8" height="15" rx="3" ry="3" fill="url(#elfClothGradient)" stroke="#000" stroke-width="1"/>
+                <path d="M75 55 L85 65 L75 75 Z" fill="#8B4513" stroke="#000" stroke-width="1"/>
+                <line x1="80" y1="60" x2="80" y2="70" stroke="#000" stroke-width="1"/>
+            </svg>
+        `)}`;
+
+        // Orc image source from the uploaded file - now an inline SVG
+        const orcSVG = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="orcSkinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#556B2F" />
+                        <stop offset="100%" stop-color="#6B8E23" />
+                    </linearGradient>
+                    <linearGradient id="orcArmorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#4F4F4F" />
+                        <stop offset="100%" stop-color="#2F4F4F" />
+                    </linearGradient>
+                    <linearGradient id="orcClothGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#8B4513" />
+                        <stop offset="100%" stop-color="#A0522D" />
+                    </linearGradient>
+                    <filter id="shadow">
+                        <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.5"/>
+                    </filter>
+                </defs>
+                <path d="M25 40 Q50 25, 75 40 L70 80 Q50 90, 30 80 Z" fill="url(#orcArmorGradient)" stroke="#000" stroke-width="1" filter="url(#shadow)"/>
+                <path d="M30 30 C20 20, 80 20, 70 30 C75 45, 60 55, 50 50 C40 55, 25 45, 30 30 Z" fill="url(#orcSkinGradient)" stroke="#000" stroke-width="1" filter="url(#shadow)"/>
+                <path d="M42 48 L40 58 L45 52 Z" fill="white" stroke="#000" stroke-width="0.5"/>
+                <path d="M58 48 L60 58 L55 52 Z" fill="white" stroke="#000" stroke-width="0.5"/>
+                <path d="M25 25 Q15 15, 20 35 Z" fill="url(#orcSkinGradient)" stroke="#000" stroke-width="1"/>
+                <path d="M75 25 Q85 15, 80 35 Z" fill="url(#orcSkinGradient)" stroke="#000" stroke-width="1"/>
+                <circle cx="40" cy="30" r="4" fill="red"/>
+                <circle cx="60" cy="30" r="4" fill="red"/>
+                <path d="M45 38 Q50 35, 55 38 L50 42 Z" fill="black"/>
+                <path d="M20 50 Q10 40, 15 65 L20 75 H30 V50 Z" fill="url(#orcArmorGradient)" stroke="#000" stroke-width="1"/>
+                <path d="M80 50 Q90 40, 85 65 L80 75 H70 V50 Z" fill="url(#orcArmorGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="38" y="80" width="10" height="15" rx="3" ry="3" fill="url(#orcClothGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="52" y="80" width="10" height="15" rx="3" ry="3" fill="url(#orcClothGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="35" y="90" width="16" height="8" rx="3" ry="3" fill="url(#orcArmorGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="49" y="90" width="16" height="8" rx="3" ry="3" fill="url(#orcArmorGradient)" stroke="#000" stroke-width="1"/>
+                <rect x="10" y="50" width="8" height="40" fill="#8B4513" rx="2" ry="2"/>
+                <circle cx="14" cy="48" r="8" fill="#8B4513" stroke="#000" stroke-width="1"/>
+                <path d="M14 40 L10 35 L18 35 Z" fill="#8B4513" stroke="#000" stroke-width="1"/>
+            </svg>
+        `)}`;
+        let orcImage = new Image();
+        orcImage.src = orcSVG; // Set the source to the new inline SVG
+        orcImage.onerror = () => {
+            console.error("Failed to load Orc SVG. Using fallback emoji.");
+            orcImage = null; // Mark as failed
+        };
+
+
+        // Function to generate SVG for a single die face
+        function createDieSVG(value) {
+            const size = 100; // SVG viewBox size
+            const dotRadius = 10;
+            const dotColor = 'black'; // Pips color
+
+            let dots = [];
+            switch (value) {
+                case 1: dots.push({ cx: 50, cy: 50 }); break;
+                case 2: dots.push({ cx: 25, cy: 75 }, { cx: 75, cy: 25 }); break;
+                case 3: dots.push({ cx: 25, cy: 75 }, { cx: 50, cy: 50 }, { cx: 75, cy: 25 }); break;
+                case 4: dots.push({ cx: 25, cy: 25 }, { cx: 75, cy: 25 }, { cx: 25, cy: 75 }, { cx: 75, cy: 75 }); break;
+                case 5: dots.push({ cx: 25, cy: 25 }, { cx: 75, cy: 25 }, { cx: 50, cy: 50 }, { cx: 25, cy: 75 }, { cx: 75, cy: 75 }); break;
+                case 6: dots.push({ cx: 25, cy: 25 }, { cx: 75, cy: 25 }, { cx: 25, cy: 50 }, { cx: 75, cy: 50 }, { cx: 25, cy: 75 }, { cx: 75, cy: 75 }); break;
+                default: break; // For '?' or during rolling
+            }
+
+            const dotElements = dots.map(d => `<circle cx="${d.cx}" cy="${d.cy}" r="${dotRadius}" fill="${dotColor}" />`).join('');
+            
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
+                            <rect x="0" y="0" width="${size}" height="${size}" fill="white" rx="10" ry="10"/>
+                            ${dotElements}
+                         </svg>`;
+            return `data:image/svg+xml;base64,${btoa(svg)}`;
+        }
+
+        // Adjust canvas size based on window size
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const availableWidth = window.innerWidth * 0.95; // 95% of viewport width
+            const availableHeight = window.innerHeight * 0.95; // 95% of viewport height
+
+            // Get computed padding for the container
+            const containerStyle = window.getComputedStyle(container);
+            const containerPaddingLeft = parseFloat(containerStyle.paddingLeft);
+            const containerPaddingRight = parseFloat(containerStyle.paddingRight);
+            const containerPaddingTop = parseFloat(containerStyle.paddingTop);
+            const containerPaddingBottom = parseFloat(containerStyle.paddingBottom);
+
+            // Estimate height of controls and message box
+            let controlsHeight = 0;
+            if (rollDiceBtn && messageBox && die1Container && rollDiceBtn.offsetParent !== null) {
+                 controlsHeight = rollDiceBtn.offsetHeight + messageBox.offsetHeight + die1Container.offsetHeight +
+                                 (parseFloat(window.getComputedStyle(rollDiceBtn).marginBottom) || 0) +
+                                 (parseFloat(window.getComputedStyle(messageBox).marginTop) || 0) +
+                                 (parseFloat(window.getComputedStyle(die1Container).marginBottom) || 0) +
+                                 // Add heights for new buttons and their margins
+                                 restartGameBtn.offsetHeight + endGameBtn.offsetHeight +
+                                 (parseFloat(window.getComputedStyle(restartGameBtn).marginTop) || 0) +
+                                 (parseFloat(window.getComputedStyle(restartGameBtn).marginBottom) || 0);
+            }
+            
+            // Calculate max cell size that fits the available space
+            const maxCellSizeX = Math.floor((availableWidth - containerPaddingLeft - containerPaddingRight - 4) / GRID_SIZE); // 4 for border
+            const maxCellSizeY = Math.floor((availableHeight - containerPaddingTop - containerPaddingBottom - controlsHeight - 50) / GRID_SIZE); // 50 for extra margin/buffer
+
+            currentCellSize = Math.min(BASE_CELL_SIZE, maxCellSizeX, maxCellSizeY);
+            currentCellSize = Math.max(40, currentCellSize); // Ensure a minimum cell size
+
+            canvas.width = GRID_SIZE * currentCellSize;
+            canvas.height = GRID_SIZE * currentCellSize;
+
+            console.log(`Canvas resized to: ${canvas.width}x${canvas.height}, Cell Size: ${currentCellSize}`);
+
+            if (currentGameState === 'PLAYING') {
+                drawGame();
+            }
+        }
+
+        // Initial canvas resize
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            showTitleScreen(); // Ensure title screen is shown after canvas is ready
+            startBushAnimation(); // Start bush animation on load
+            // Set initial blank dice images
+            die1Image.src = createDieSVG(0); // Use 0 for a blank/question mark state
+            die2Image.src = createDieSVG(0);
+        });
+        window.addEventListener('resize', resizeCanvas);
+
+        function startBushAnimation() {
+            if (bushAnimationInterval) clearInterval(bushAnimationInterval); // Clear any existing interval
+            bushAnimationInterval = setInterval(() => {
+                bushAnimationOpacity += bushAnimationDirection * 0.03; // Adjust speed of pulsation
+                if (bushAnimationOpacity > 1.0 || bushAnimationOpacity < 0.4) {
+                    bushAnimationDirection *= -1; // Reverse direction
+                }
+                if (currentGameState === 'PLAYING') {
+                    drawGame(); // Redraw game to show bush animation
+                }
+            }, 100); // Update every 100ms
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const rectX = x * currentCellSize;
+                    const rectY = y * currentCellSize;
+
+                    ctx.strokeStyle = COLORS.BLACK;
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(rectX, rectY, currentCellSize, currentCellSize);
+
+                    // Draw special tiles
+                    if (x === startEndPoint[0] && y === startEndPoint[1]) {
+                        ctx.fillStyle = COLORS.GOLD;
+                        ctx.fillRect(rectX, rectY, currentCellSize, currentCellSize);
+                        ctx.fillStyle = COLORS.BLACK;
+                        ctx.font = `${currentCellSize * 0.25}px Inter`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('START/END', rectX + currentCellSize / 2, rectY + currentCellSize / 2);
+                    } else if (x === goldPosition[0] && y === goldPosition[1]) {
+                        // Gold tile
+                        ctx.fillStyle = COLORS.GOLD;
+                        ctx.fillRect(rectX, rectY, currentCellSize, currentCellSize);
+                        ctx.fillStyle = COLORS.BLACK;
+                        ctx.font = `${currentCellSize * 0.4}px serif`; // Using a more decorative font for gold
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('💰', rectX + currentCellSize / 2, rectY + currentCellSize / 2); // Gold emoji
+                    } else if (bushPositions.some(pos => pos[0] === x && pos[1] === y)) {
+                        ctx.fillStyle = COLORS.GREEN_BUSH;
+                        ctx.fillRect(rectX, rectY, currentCellSize, currentCellSize);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${bushAnimationOpacity})`; // Pulsating effect
+                        ctx.font = `${currentCellSize * 0.4}px sans-serif`;
+                        ctx.fillText('🌳', rectX + currentCellSize / 2, rectY + currentCellSize / 2); // Bush emoji
+                    } else {
+                        const portal = portalPositions.find(p => p.pos[0] === x && p.pos[1] === y);
+                        if (portal) {
+                            ctx.fillStyle = COLORS.ORANGE_PORTAL;
+                            ctx.fillRect(rectX, rectY, currentCellSize, currentCellSize);
+                            
+                            // Draw Portal Emoji
+                            ctx.fillStyle = COLORS.WHITE;
+                            ctx.font = `${currentCellSize * 0.4}px sans-serif`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('🌀', rectX + currentCellSize / 2, rectY + currentCellSize / 2 - (currentCellSize * 0.15)); // Adjust Y for emoji
+
+                            // Draw Portal Name
+                            ctx.fillStyle = COLORS.BLACK; // Black text for readability on orange
+                            ctx.font = `${currentCellSize * 0.18}px Inter`; // Smaller font for name
+                            ctx.fillText(portal.name, rectX + currentCellSize / 2, rectY + currentCellSize / 2 + (currentCellSize * 0.2)); // Adjust Y for name
+                        } else {
+                            ctx.fillStyle = COLORS.DARK_GREY_BOARD;
+                            ctx.fillRect(rectX, rectY, currentCellSize, currentCellSize);
+                        }
+                    }
+
+                    // Draw valid move highlights
+                    if (validMoves.some(move => move[0] === x && move[1] === y)) {
+                        ctx.fillStyle = COLORS.HIGHLIGHT;
+                        ctx.fillRect(rectX, rectY, currentCellSize, currentCellSize);
+                    }
+                }
+            }
+        }
+
+        function drawPlayers(elfDrawPos = elfPos, orcDrawPos = orcPos) {
+            // Draw Elf
+            const elfRectX = elfDrawPos[0] * currentCellSize;
+            const elfRectY = elfDrawPos[1] * currentCellSize;
+            const elfIconSize = currentCellSize * 0.8;
+            const elfIconX = elfRectX + (currentCellSize - elfIconSize) / 2;
+            const elfIconY = elfRectY + (currentCellSize - elfIconSize) / 2;
+
+            const elfImg = new Image();
+            elfImg.src = elfSVG;
+            
+            const elfOnBush = bushPositions.some(p => p[0] === elfDrawPos[0] && p[1] === elfDrawPos[1]);
+
+            // Function to draw Elf with correct alpha
+            const drawElfWithAlpha = () => {
+                if (elfOnBush) {
+                    ctx.globalAlpha = bushAnimationOpacity * 0.6 + 0.2; // Pulsating opacity from 0.2 to 0.8
+                } else {
+                    ctx.globalAlpha = 1.0; // Fully visible
+                }
+                ctx.drawImage(elfImg, elfIconX, elfIconY, elfIconSize, elfIconSize);
+                ctx.globalAlpha = 1.0; // Reset alpha for subsequent drawings
+            };
+
+            if (elfImg.complete) {
+                drawElfWithAlpha();
+            } else {
+                elfImg.onload = drawElfWithAlpha;
+            }
+
+
+            // Draw Orc using the provided image
+            const orcRectX = orcDrawPos[0] * currentCellSize;
+            const orcRectY = orcDrawPos[1] * currentCellSize;
+            const orcIconSize = currentCellSize * 0.8; // Adjust size as needed
+            const orcIconX = orcRectX + (currentCellSize - orcIconSize) / 2;
+            const orcIconY = orcRectY + (currentCellSize - orcIconSize) / 2;
+
+            if (orcImage && orcImage.complete) {
+                ctx.drawImage(orcImage, orcIconX, orcIconY, orcIconSize, orcIconSize);
+            } else if (orcImage) {
+                // If image is still loading, draw a placeholder or wait
+                orcImage.onload = () => {
+                    ctx.drawImage(orcImage, orcIconX, orcIconY, orcIconSize, orcIconSize);
+                    // Redraw the whole game to ensure the orc appears once loaded
+                    drawGame();
+                };
+            } else {
+                // Fallback if image failed to load
+                ctx.fillStyle = COLORS.RED_CAUGHT;
+                ctx.font = `${currentCellSize * 0.8}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('👹', orcIconX + orcIconSize / 2, orcIconY + orcIconSize / 2);
+            }
+        }
+
+        function animatePlayerMovement(player, start, target) {
+            isMoving = true;
+            animationStartTime = performance.now();
+            startAnimationPos = start;
+            targetAnimationPos = target;
+
+            function animate(currentTime) {
+                const elapsed = currentTime - animationStartTime;
+                const progress = Math.min(elapsed / animationDuration, 1);
+
+                const currentX = start[0] + (target[0] - start[0]) * progress;
+                const currentY = start[1] + (target[1] - start[1]) * progress;
+
+                drawGrid(); // Redraw grid first
+                if (player === 'elf') {
+                    drawPlayers([currentX, currentY], orcPos);
+                } else {
+                    drawPlayers(elfPos, [currentX, currentY]);
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isMoving = false;
+                    // Ensure final position is set correctly after animation
+                    if (player === 'elf') {
+                        elfPos = target;
+                    } else {
+                        orcPos = target;
+                    }
+                    drawGame(); // Final redraw at exact position
+
+                    // Check for portal landing AFTER animation
+                    const landedOnPortal = portalPositions.find(p => p.pos[0] === target[0] && p.pos[1] === target[1]);
+                    if (landedOnPortal) {
+                        showPortalSelection(player, target);
+                    } else {
+                        // If not on a portal, proceed with game end check and turn switch
+                        checkGameEnd();
+                        if (currentGameState === 'PLAYING') {
+                            playerTurn = (playerTurn === 'elf') ? 'orc' : 'elf';
+                            rollDiceBtn.textContent = `Roll Dice (${playerTurn === 'elf' ? "Elf's" : "Orc's"} Turn)`;
+                            updateMessageBox(`${playerTurn === 'elf' ? "Elf's" : "Orc's"} turn. Press Roll Dice.`);
+                            rollDiceBtn.disabled = false; // Re-enable roll button
+                        }
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function drawGame() {
+            console.log("drawGame called.");
+            drawGrid();
+            drawPlayers();
+        }
+
+        function rollDice() {
+            return new Promise(resolve => {
+                let rolls = [0, 0];
+                let count = 0;
+                
+                die1Container.classList.add('rolling'); // Add rolling class to container
+                die2Container.classList.add('rolling'); // Add rolling class to container
+
+                const interval = setInterval(() => {
+                    rolls = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
+                    die1Image.src = createDieSVG(rolls[0]); // Update image source
+                    die2Image.src = createDieSVG(rolls[1]); // Update image source
+                    count++;
+                    if (count > 20) { // Increased count for longer animation
+                        clearInterval(interval);
+                        die1Container.classList.remove('rolling'); // Remove rolling class
+                        die2Container.classList.remove('rolling'); // Remove rolling class
+                        resolve(rolls);
+                    }
+                }, 50);
+            });
+        }
+
+        function updateMessageBox(message) {
+            messageBox.textContent = message;
+        }
+
+        function calculateElfMoves(rolls) {
+            const moveAmount = Math.min(...rolls);
+            const currentPos = elfPos;
+            const moves = [];
+
+            // Elf movement: any direction (horizontal or vertical), not diagonal
+            for (let i = 1; i <= moveAmount; i++) {
+                // Horizontal moves
+                if (currentPos[0] + i < GRID_SIZE) moves.push([currentPos[0] + i, currentPos[1]]);
+                if (currentPos[0] - i >= 0) moves.push([currentPos[0] - i, currentPos[1]]);
+                // Vertical moves
+                if (currentPos[1] + i < GRID_SIZE) moves.push([currentPos[0], currentPos[1] + i]);
+                if (currentPos[1] - i >= 0) moves.push([currentPos[0], currentPos[1] - i]);
+            }
+            return moves;
+        }
+
+        function calculateOrcMoves(rolls) {
+            const maxMoveAmount = Math.abs(rolls[0] - rolls[1]);
+            const currentPos = orcPos;
+            const moves = [];
+
+            if (maxMoveAmount === 0) return []; // Orc stays still if difference is zero
+
+            // Orc movement: only diagonally, any number of paces up to maxMoveAmount
+            const diagonalDirections = [
+                [-1, -1], [-1, 1], [1, -1], [1, 1]
+            ];
+
+            for (const [dx, dy] of diagonalDirections) {
+                for (let i = 1; i <= maxMoveAmount; i++) { // Iterate from 1 up to maxMoveAmount
+                    const newX = currentPos[0] + dx * i;
+                    const newY = currentPos[1] + dy * i;
+
+                    // Check bounds
+                    if (newX >= 0 && newX < GRID_SIZE && newY >= 0 && newY < GRID_SIZE) {
+                        // Orc cannot land on the gold tile
+                        if (!(newX === goldPosition[0] && newY === goldPosition[1])) {
+                            moves.push([newX, newY]);
+                        }
+                    }
+                }
+            }
+            return moves;
+        }
+
+        function handlePlayerMove(targetX, targetY) {
+            if (!gameActive || isMoving || validMoves.length === 0 || awaitingPortalSelection) return;
+
+            const clickedTile = [targetX, targetY];
+            const isValidMove = validMoves.some(move => move[0] === clickedTile[0] && move[1] === clickedTile[1]);
+
+            if (isValidMove) {
+                let playerCurrentPos;
+                let playerTargetPos = clickedTile;
+                let playerChar = '';
+
+                if (playerTurn === 'elf') {
+                    playerCurrentPos = [...elfPos];
+                    playerChar = 'elf';
+                    if (playerTargetPos[0] === goldPosition[0] && playerTargetPos[1] === goldPosition[1] && !elfHasGold) {
+                        elfHasGold = true;
+                        updateMessageBox(messageBox.textContent + " Elf has the gold!");
+                    }
+                } else { // It's Orc's turn
+                    playerCurrentPos = [...orcPos];
+                    playerChar = 'orc';
+                }
+
+                validMoves = []; // Clear valid moves after selection
+                rollDiceBtn.disabled = true; // Keep disabled during animation
+                animatePlayerMovement(playerChar, playerCurrentPos, playerTargetPos);
+                // Turn switch and button re-enable now happen in animatePlayerMovement's callback
+            } else {
+                updateMessageBox("Invalid move! Please select a highlighted tile.");
+            }
+        }
+
+        function checkGameEnd() {
+            const elfOnBush = bushPositions.some(p => p[0] === elfPos[0] && p[1] === elfPos[1]);
+            if (orcPos[0] === elfPos[0] && orcPos[1] === elfPos[1] && !elfOnBush) {
+                currentGameState = 'GAME_OVER';
+                gameActive = false;
+                showGameEndScreen('GAME_OVER');
+                return;
+            }
+
+            if (elfHasGold && elfPos[0] === startEndPoint[0] && elfPos[1] === startEndPoint[1]) {
+                currentGameState = 'ELF_WIN';
+                gameActive = false;
+                showGameEndScreen('ELF_WIN');
+            }
+        }
+
+        function resetGame() {
+            elfPos = [...startEndPoint];
+            orcPos = [0, 0];
+            elfHasGold = false;
+            playerTurn = 'elf';
+            gameActive = true;
+            currentGameState = 'PLAYING';
+            validMoves = [];
+            updateMessageBox("Let the hunt begin! Elf's turn. Roll the dice.");
+            rollDiceBtn.textContent = "Roll Dice (Elf's Turn)";
+            die1Image.src = createDieSVG(0);
+            die2Image.src = createDieSVG(0);
+            rollDiceBtn.disabled = false;
+            drawGame();
+        }
+
+        function showTitleScreen() {
+            titleScreen.classList.remove('hidden');
+            gameEndScreen.classList.add('hidden');
+            portalSelectionModal.classList.add('hidden');
+            rulesScreen.classList.add('hidden');
+            gameActive = false;
+            currentGameState = 'TITLE';
+        }
+
+        function hideTitleScreen() {
+            titleScreen.classList.add('hidden');
+        }
+
+        function showGameEndScreen(type) {
+            gameEndScreen.classList.remove('hidden');
+            if (type === 'GAME_OVER') {
+                gameEndScreen.classList.add('game-over');
+                gameEndTitle.textContent = "GAME OVER!";
+                gameEndMessage.textContent = "The Orc caught the Elf!";
+            } else if (type === 'ELF_WIN') {
+                gameEndScreen.classList.remove('game-over');
+                gameEndTitle.textContent = "ELF WINS!";
+                gameEndMessage.textContent = "The Elf retrieved the gold and returned safely!";
+            }
+        }
+
+        function hideGameEndScreen() {
+            gameEndScreen.classList.add('hidden');
+        }
+
+        function showPortalSelection(currentPlayerType, currentPortalPos) {
+            awaitingPortalSelection = true;
+            playerAwaitingPortal = currentPlayerType;
+            rollDiceBtn.disabled = true;
+            canvas.style.pointerEvents = 'none';
+
+            portalButtonsContainer.innerHTML = '';
+
+            const otherPortals = portalPositions.filter(p => !(p.pos[0] === currentPortalPos[0] && p.pos[1] === currentPortalPos[1]));
+
+            otherPortals.forEach(portal => {
+                const button = document.createElement('button');
+                button.className = 'game-button portal-select-button';
+                button.textContent = `Go to ${portal.name}`;
+                button.onclick = () => selectPortalDestination(portal.pos);
+                portalButtonsContainer.appendChild(button);
+            });
+
+            portalSelectionModal.classList.remove('hidden');
+            updateMessageBox(`You landed on a portal! Choose your destination.`);
+        }
+
+        function selectPortalDestination(selectedPortalPos) {
+            if (playerAwaitingPortal === 'elf') {
+                elfPos = selectedPortalPos;
+            } else {
+                orcPos = selectedPortalPos;
+            }
+
+            portalSelectionModal.classList.add('hidden');
+            awaitingPortalSelection = false;
+            playerAwaitingPortal = null;
+            canvas.style.pointerEvents = 'auto';
+
+            drawGame();
+            checkGameEnd();
+
+            if (currentGameState === 'PLAYING') {
+                playerTurn = (playerTurn === 'elf') ? 'orc' : 'elf';
+                rollDiceBtn.textContent = `Roll Dice (${playerTurn === 'elf' ? "Elf's" : "Orc's"} Turn)`;
+                updateMessageBox(`${playerTurn === 'elf' ? "Elf's" : "Orc's"} turn. Press Roll Dice.`);
+                rollDiceBtn.disabled = false;
+            }
+        }
+
+        function showRulesScreen() {
+            hideTitleScreen();
+            rulesScreen.classList.remove('hidden');
+            currentGameState = 'RULES';
+        }
+
+        function hideRulesScreen() {
+            rulesScreen.classList.add('hidden');
+            showTitleScreen();
+        }
+
+
+        // Event Listeners
+        startBtn.addEventListener('click', () => {
+            hideTitleScreen();
+            resetGame();
+        });
+
+        rulesBtn.addEventListener('click', () => {
+            showRulesScreen();
+        });
+
+        backToTitleBtn.addEventListener('click', () => {
+            hideRulesScreen();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            hideGameEndScreen();
+            resetGame();
+        });
+
+        quitBtn.addEventListener('click', () => {
+            hideGameEndScreen();
+            showTitleScreen();
+        });
+
+        restartGameBtn.addEventListener('click', () => {
+            resetGame();
+        });
+
+        endGameBtn.addEventListener('click', () => {
+            showTitleScreen();
+        });
+
+
+        rollDiceBtn.addEventListener('click', async () => {
+            if (!gameActive || isMoving || awaitingPortalSelection) return;
+
+            rollDiceBtn.disabled = true;
+            const rolls = await rollDice();
+            const moveAmount = Math.abs(rolls[0] - rolls[1]);
+
+            if (playerTurn === 'elf') {
+                updateMessageBox(`Elf rolled ${rolls[0]} and ${rolls[1]}. Click on a highlighted tile to move.`);
+                validMoves = calculateElfMoves(rolls);
+            } else { // playerTurn === 'orc'
+                updateMessageBox(`Orc rolled ${rolls[0]} and ${rolls[1]}.`);
+                if (moveAmount === 0) {
+                    updateMessageBox(messageBox.textContent + " Zero move! Turn goes to Elf.");
+                    validMoves = []; // No valid moves for Orc
+                    // Immediately switch turn and re-enable button as Orc has no move
+                    playerTurn = 'elf';
+                    rollDiceBtn.textContent = "Roll Dice (Elf's Turn)";
+                    rollDiceBtn.disabled = false;
+                } else {
+                    validMoves = calculateOrcMoves(rolls);
+                    // Filter out moves to Elf's position if Elf is on a bush tile
+                    const elfOnBush = bushPositions.some(p => p[0] === elfPos[0] && p[1] === elfPos[1]);
+                    if (elfOnBush) {
+                        validMoves = validMoves.filter(move => !(move[0] === elfPos[0] && move[1] === elfPos[1]));
+                    }
+
+                    if (validMoves.length === 0) {
+                        updateMessageBox(messageBox.textContent + " No valid moves. Turn goes to Elf.");
+                        // Immediately switch turn and re-enable button as Orc has no valid move
+                        playerTurn = 'elf';
+                        rollDiceBtn.textContent = "Roll Dice (Elf's Turn)";
+                        rollDiceBtn.disabled = false;
+                    } else {
+                        updateMessageBox(messageBox.textContent + " Click on a highlighted tile to move.");
+                        // Keep button disabled, wait for click
+                        // No turn switch here, it happens in handlePlayerMove
+                    }
+                }
+            }
+            drawGame(); // Redraw to show highlights or updated messages
+        });
+
+        canvas.addEventListener('click', (event) => {
+            if (!gameActive || isMoving || validMoves.length === 0 || awaitingPortalSelection) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const clickedGridX = Math.floor(x / currentCellSize);
+            const clickedGridY = Math.floor(y / currentCellSize);
+            
+            handlePlayerMove(clickedGridX, clickedGridY);
+        });
+
+        // Initial display is handled by the 'load' event listener
+    </script>
+
+
+</body></html>
